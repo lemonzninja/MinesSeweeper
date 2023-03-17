@@ -27,28 +27,24 @@ int gridHeight = screenHeight / ROWS; // the height of each cell
 // a struct for the cells
 typedef struct Cell
 {
-    int i;             // the index of the cell in the grid
-    int j;             // the index of the cell in the grid
-    bool containsMine; // if the cell contains a mine
-    bool revealed;     // if the cell is revealed
+    int i;              // the index of the cell in the grid
+    int j;              // the index of the cell in the grid
+    bool containsMine;  // if the cell contains a mine
+    bool revealed;      // if the cell is revealed
     int nearbyMines;    // the number of mines nearby
 } Cell;
 
 // a two dimensional array of cells
-Cell grid[COLS][ROWS]; // the grid of cells
+Cell grid[COLS][ROWS];  // the grid of cells
 
 // Local Functions Declaration
 //----------------------------------------------------------------------------------
-void CellDraw(Cell cell);        // Draw a cell
-bool IsIndexValid(int i, int j); // Check if the index is valid
-void CallReveal(int i, int j);   // Call the reveal function
-// Function to count the number of nearby mines per cell
-int CellCountMines(int i, int j); // Count the number of nearby mines per cell
+void CellDraw(Cell cell);           // Draw a cell
+bool IsIndexValid(int i, int j);    // Check if the index is valid
+void CallReveal(int i, int j);      // Call the reveal function
+int CellCountMines(int i, int j);   // Count the number of nearby mines per cell
 
-
-
-
-static void UpdateDrawFrame(void); // Update and draw one frame
+static void UpdateDrawFrame(void);  // Update and draw one frame
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -72,7 +68,7 @@ int main()
                     .j = j,                     // Set the index of the cell in the grid
                     .containsMine = false,      // Set the cell to not contain a mine
                     .revealed = false,          // Set the cell to not be revealed
-                    .nearbyMines = -1            // Set the number of nearby mines to -1
+                    .nearbyMines = -1           // Set the number of nearby mines to -1
                 };                
         }
     }
@@ -132,13 +128,13 @@ static void UpdateDrawFrame(void)
     //----------------------------------------------------------------------------------
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) // If the left mouse button is pressed
     {
-        Vector2 mousePos = GetMousePosition(); // Get the mouse position
-        int indexI = mousePos.x / gridWidth;   // Get the index of the cell in the grid
-        int indexJ = mousePos.y / gridHeight;  // Get the index of the cell in the grid
+        Vector2 mousePos = GetMousePosition();  // Get the mouse position
+        int indexI = mousePos.x / gridWidth;    // Get the index of the cell in the grid
+        int indexJ = mousePos.y / gridHeight;   // Get the index of the cell in the grid
 
-        if (IsIndexValid(indexI, indexJ)) // Check if the index is valid
+        if (IsIndexValid(indexI, indexJ))       // Check if the index is valid
         {
-            CallReveal(indexI, indexJ); // Call the reveal function
+            CallReveal(indexI, indexJ);         // Call the reveal function
         }
     }
 
@@ -149,11 +145,11 @@ static void UpdateDrawFrame(void)
     ClearBackground(RAYWHITE);
 
     // Draw the grid
-    for (int i = 0; i < COLS; i++)           // Loop through the columns
+    for (int i = 0; i < COLS; i++)              // Loop through the columns
     {
-        for (int j = 0; j < ROWS; j++)      // Loop through the rows
+        for (int j = 0; j < ROWS; j++)          // Loop through the rows
         {
-            CellDraw(grid[i][j]);           // Draw the cell
+            CellDraw(grid[i][j]);               // Draw the cell
         }
     }
 
@@ -178,11 +174,10 @@ void CellDraw(Cell cell)
             {
                 DrawText(TextFormat("%i", cell.nearbyMines), cell.i * gridWidth + 10, cell.j * gridHeight + 10, 20, BLACK);
             }
-
         }
     }
 
-    // Draw the cell
+    // Draw the cell lines
     DrawRectangleLines(cell.i * gridWidth, cell.j * gridHeight, gridWidth, gridHeight, BLACK);
 }
 
