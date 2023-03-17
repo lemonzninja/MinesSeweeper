@@ -31,11 +31,15 @@ typedef struct Cell
     int j;              // the index of the cell in the grid
     bool containsMine;  // if the cell contains a mine
     bool revealed;      // if the cell is revealed
+    bool flagged;       // if the cell is flagged
     int nearbyMines;    // the number of mines nearby
 } Cell;
 
 // a two dimensional array of cells
 Cell grid[COLS][ROWS];  // the grid of cells
+
+// texture for the flag
+Texture2D flagSprite;
 
 // Local Functions Declaration
 //----------------------------------------------------------------------------------
@@ -57,6 +61,8 @@ int main()
 
     InitWindow(screenWidth, screenHeight, "MineSweeper");
 
+    flagSprite = LoadTexture("resources/flag.png"); // Load the flag texture
+
     // Initialize the grid
     for (int i = 0; i < COLS; i++)              // Loop through the columns
     {
@@ -68,15 +74,16 @@ int main()
                     .j = j,                     // Set the index of the cell in the grid
                     .containsMine = false,      // Set the cell to not contain a mine
                     .revealed = false,          // Set the cell to not be revealed
-                    .nearbyMines = -1           // Set the number of nearby mines to -1
+                    .nearbyMines = -1,           // Set the number of nearby mines to -1
+                    .flagged = false            // Set the cell to not be flagged
                 };                
         }
     }
 
 
-    int minesToPlace = (int)(ROWS * COLS * 0.1f); // the number of mines to place
-    
     // Place the mines
+    int minesToPlace = (int)(ROWS * COLS * 0.1f); // the number of mines to place
+
     while (minesToPlace > 0)                    // Loop until all the mines are placed
     {
         int i = rand() % COLS;                  // Get a random index for the column
@@ -118,6 +125,9 @@ int main()
     CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
+    // unload the flag texture
+    UnloadTexture(flagSprite);
+
     return 0;
 }
 
@@ -126,6 +136,8 @@ static void UpdateDrawFrame(void)
 {
     // Update
     //----------------------------------------------------------------------------------
+    
+    // Check if the left mouse button is pressed and if the index is valid 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) // If the left mouse button is pressed
     {
         Vector2 mousePos = GetMousePosition();  // Get the mouse position
@@ -176,6 +188,16 @@ void CellDraw(Cell cell)
             }
         }
     }
+    // else if flagged, draw flag sprite
+    else if (cell.flagged)
+    {
+        // Draw the flag sprite on the cell
+    }
+    else if (cell.flagged)
+    {
+        DrawRectangle(cell.i * gridWidth, cell.j * gridHeight, gridWidth, gridHeight, BLUE);
+        DrawTexture(flagSprite, cell.i * gridWidth, cell.j * gridHeight, WHITE);
+    }
 
     // Draw the cell lines
     DrawRectangleLines(cell.i * gridWidth, cell.j * gridHeight, gridWidth, gridHeight, BLACK);
@@ -190,6 +212,12 @@ bool IsIndexValid(int i, int j)
 // reveal the cell and if it contains a mine, lose the game
 void CallReveal(int i, int j)
 {
+    // is flagged, return
+    if (grid[i][j].flagged)
+    {
+        return;
+    }
+    
     grid[i][j].revealed = true;     // reveal the cell
 
     if (grid[i][j].containsMine)    // if the cell contains a mine
