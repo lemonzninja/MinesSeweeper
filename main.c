@@ -18,7 +18,9 @@
 
 // Local variables
 const int screenWidth = 400;
-const int screenHeight = 400;
+const int screenHeight = 500;
+
+const int gameHeight = 400;
 
 // have a variable to divide the screen into 10x10 grid
 int gridWidth = screenWidth / COLS;   // the width of each cell
@@ -45,8 +47,13 @@ Texture2D flagSprite;
 //----------------------------------------------------------------------------------
 void CellDraw(Cell cell);           // Draw a cell
 bool IsIndexValid(int i, int j);    // Check if the index is valid
+
+void GridInit(void);                // Initialize the grid
+
 void CallReveal(int i, int j);      // Call the reveal function
 int CellCountMines(int i, int j);   // Count the number of nearby mines per cell
+void cellFlag(int i, int j);         // Flag the cell
+
 
 static void UpdateDrawFrame(void);  // Update and draw one frame
 
@@ -57,54 +64,12 @@ int main()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
+   
     srand(time(0));
 
     InitWindow(screenWidth, screenHeight, "MineSweeper");
 
-    flagSprite = LoadTexture("resources/flag.png"); // Load the flag texture
-
-    // Initialize the grid
-    for (int i = 0; i < COLS; i++)              // Loop through the columns
-    {
-        for (int j = 0; j < ROWS; j++)          // Loop through the rows
-        {
-            grid[i][j] = (Cell)                 // Initialize the cell
-                {
-                    .i = i,                     // Set the index of the cell in the grid
-                    .j = j,                     // Set the index of the cell in the grid
-                    .containsMine = false,      // Set the cell to not contain a mine
-                    .revealed = false,          // Set the cell to not be revealed
-                    .nearbyMines = -1,           // Set the number of nearby mines to -1
-                    .flagged = false            // Set the cell to not be flagged
-                };                
-        }
-    }
-
-
-    // Place the mines
-    int minesToPlace = (int)(ROWS * COLS * 0.1f); // the number of mines to place
-
-    while (minesToPlace > 0)                    // Loop until all the mines are placed
-    {
-        int i = rand() % COLS;                  // Get a random index for the column
-        int j = rand() % ROWS;                  // Get a random index for the row
-
-        if (!grid[i][j].containsMine)           // if the cell doesn't contain a mine
-        {
-            grid[i][j].containsMine = true;     // Set the cell to contain a mine
-            minesToPlace--;                     // Decrement the number of mines to place
-        }
-    }
-
-    //  Count the number of nearby mines per cell
-    for (int i = 0; i < COLS; i++)              // Loop through the columns
-    {
-        for (int j = 0; j < ROWS; j++)          // Loop through the rows
-        {
-            grid[i][j].nearbyMines = CellCountMines(i, j); // Count the number of nearby mines per cell
-        }
-    }  
-
+    GridInit(); // Initialize the grid
     //--------------------------------------------------------------------------------------
 
 #if defined(PLATFORM_WEB)
@@ -149,7 +114,20 @@ static void UpdateDrawFrame(void)
             CallReveal(indexI, indexJ);         // Call the reveal function
         }
     }
+    else if (IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) // If the right mouse button is pressed
+    {
+        Vector2 mousePos = GetMousePosition();  // Get the mouse position
+        int indexI = mousePos.x / gridWidth;    // Get the index of the cell in the grid
+        int indexJ = mousePos.y / gridHeight;   // Get the index of the cell in the grid
 
+        if (IsIndexValid(indexI, indexJ))       // Check if the index is valid
+        {
+            cellFlag(indexI, indexJ);           // Call the flag function
+
+          //  grid[indexI][indexJ].flagged = !grid[indexI][indexJ].flagged; // Toggle the flag
+        }
+    }
+    
     // Draw
     //----------------------------------------------------------------------------------
     BeginDrawing();
@@ -167,6 +145,53 @@ static void UpdateDrawFrame(void)
 
     EndDrawing();
     //----------------------------------------------------------------------------------
+}
+
+void GridInit(void)
+{
+    flagSprite = LoadTexture("resources/flag.png"); // Load the flag texture
+
+    // Initialize the grid
+    for (int i = 0; i < COLS; i++)              // Loop through the columns
+    {
+        for (int j = 0; j < ROWS; j++)          // Loop through the rows
+        {
+            grid[i][j] = (Cell)                 // Initialize the cell
+                {
+                    .i = i,                     // Set the index of the cell in the grid
+                    .j = j,                     // Set the index of the cell in the grid
+                    .containsMine = false,      // Set the cell to not contain a mine
+                    .revealed = false,          // Set the cell to not be revealed
+                    .nearbyMines = -1,           // Set the number of nearby mines to -1
+                    .flagged = false            // Set the cell to not be flagged
+                };                
+        }
+    }
+
+
+    // Place the mines
+    int minesToPlace = (int)(ROWS * COLS * 0.1f); // the number of mines to place
+
+    while (minesToPlace > 0)                    // Loop until all the mines are placed
+    {
+        int i = rand() % COLS;                  // Get a random index for the column
+        int j = rand() % ROWS;                  // Get a random index for the row
+
+        if (!grid[i][j].containsMine)           // if the cell doesn't contain a mine
+        {
+            grid[i][j].containsMine = true;     // Set the cell to contain a mine
+            minesToPlace--;                     // Decrement the number of mines to place
+        }
+    }
+
+    //  Count the number of nearby mines per cell
+    for (int i = 0; i < COLS; i++)              // Loop through the columns
+    {
+        for (int j = 0; j < ROWS; j++)          // Loop through the rows
+        {
+            grid[i][j].nearbyMines = CellCountMines(i, j); // Count the number of nearby mines per cell
+        }
+    }  
 }
 
 void CellDraw(Cell cell)
@@ -191,12 +216,11 @@ void CellDraw(Cell cell)
     // else if flagged, draw flag sprite
     else if (cell.flagged)
     {
-        // Draw the flag sprite on the cell
-    }
-    else if (cell.flagged)
-    {
-        DrawRectangle(cell.i * gridWidth, cell.j * gridHeight, gridWidth, gridHeight, BLUE);
-        DrawTexture(flagSprite, cell.i * gridWidth, cell.j * gridHeight, WHITE);
+        Rectangle source = { 0, 0, flagSprite.width, flagSprite.height }; // the source rectangle
+        Rectangle dest = { cell.i * gridWidth, cell.j * gridHeight, gridWidth, gridHeight }; // the destination rectangle
+        Vector2 origin = { 0, 0 }; // the origin of the texture
+
+        DrawTexturePro(flagSprite, source, dest, origin, 0.0f, Fade(WHITE, 0.3f)); // draw the flag sprite
     }
 
     // Draw the cell lines
@@ -228,6 +252,18 @@ void CallReveal(int i, int j)
     {
         // TODO: play a sound.
     }
+}
+
+// flag the cell
+void cellFlag(int i, int j)
+{
+    // if revealed, return
+    if (grid[i][j].revealed)
+    {
+        return;
+    }
+
+    grid[i][j].flagged = !grid[i][j].flagged; // Toggle the flag
 }
 
 // Count the number of nearby mines per cell
