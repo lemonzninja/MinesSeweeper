@@ -18,9 +18,7 @@
 
 // Local variables
 const int screenWidth = 400;
-const int screenHeight = 500;
-
-const int gameHeight = 400;
+const int screenHeight = 400;
 
 // have a variable to divide the screen into 10x10 grid
 int gridWidth = screenWidth / COLS;   // the width of each cell
@@ -147,6 +145,7 @@ static void UpdateDrawFrame(void)
     //----------------------------------------------------------------------------------
 }
 
+// Initialize the grid
 void GridInit(void)
 {
     flagSprite = LoadTexture("resources/flag.png"); // Load the flag texture
@@ -194,6 +193,7 @@ void GridInit(void)
     }  
 }
 
+// Draw the cells
 void CellDraw(Cell cell)
 {
     // if revealed, and if contains mine, draw a red square else draw a light gray square
